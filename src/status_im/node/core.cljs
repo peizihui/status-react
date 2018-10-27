@@ -5,6 +5,8 @@
             [status-im.native-module.core :as status]
             [status-im.utils.config :as config]
             [status-im.utils.types :as types]
+
+            [re-frame.core :as re-frame]
             [status-im.utils.platform :as utils.platform]
             [status-im.utils.utils :as utils]
             [taoensso.timbre :as log]
@@ -54,12 +56,20 @@
   (get-in db [:accounts/accounts address :network]))
 
 (defn- get-base-node-config [config]
-  (cond-> (assoc config
-                 :Name "StatusIM"
-                 :BackupDisabledDataDir (utils.platform/no-backup-directory))
-    config/dev-build?
-    (assoc :ListenAddr ":30304"
-           :DataDir (str (:DataDir config) "_dev"))))
+  (let [initial-props @(re-frame/subscribe [:initial-props])
+        status-node-port (get initial-props "STATUS_NODE_PORT")
+        status-node-datadir (get initial-props "STATUS_NODE_DATADIR")]
+    (cond-> (assoc config
+                   :Name "StatusIM"
+                   :BackupDisabledDataDir (utils.platform/no-backup-directory))
+      status-node-port
+      (assoc :ListenAddr (str ":" (get initial-props "STATUS_NODE_PORT")))
+      status-node-datadir
+      (assoc :DataDir (get initial-props "STATUS_NODE_DATADIR"))
+      config/dev-build?
+      (assoc :ListenAddr (or (:ListenAddr config) ":30304")
+             :DataDir (or (:DataDir config)
+                          (str (:DataDir config) "_dev"))))))
 
 (defn- pick-nodes
   "Picks `limit` different nodes randomly from the list of nodes

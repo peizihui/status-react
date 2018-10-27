@@ -67,6 +67,8 @@ class ReactNativeProperties : public QObject {
       QString pluginsPath READ pluginsPath WRITE setPluginsPath NOTIFY pluginsPathChanged)
   Q_PROPERTY(
       QString executor READ executor WRITE setExecutor NOTIFY executorChanged)
+  Q_PROPERTY(
+      QVariantMap initialProps READ initialProps WRITE setInitialProps NOTIFY initialPropsChanged)
 public:
   ReactNativeProperties(QObject *parent = nullptr) : QObject(parent) {
     m_codeLocation = m_packagerTemplate.arg(m_packagerHost).arg(m_packagerPort);
@@ -99,6 +101,14 @@ public:
     m_executor = executor;
     Q_EMIT executorChanged();
   }
+  QVariantMap initialProps() const { return m_initialProps; }
+  void setInitialProps(const QVariantMap &initialProps) {
+    if (m_initialProps == initialProps)
+      return;
+    m_initialProps = initialProps;
+    Q_EMIT initialPropsChanged();
+  }
+
   QString packagerHost() const { return m_packagerHost; }
   void setPackagerHost(const QString &packagerHost) {
     if (m_packagerHost == packagerHost)
@@ -130,11 +140,13 @@ public:
       setLiveReload(false);
     }
   }
+
 Q_SIGNALS:
   void liveReloadChanged();
   void codeLocationChanged();
   void pluginsPathChanged();
   void executorChanged();
+  void initialPropsChanged();
 
 private:
   bool m_liveReload = false;
@@ -150,6 +162,7 @@ private:
 #else
   QString m_executor = "LocalServerConnection";
 #endif
+  QVariantMap m_initialProps;
 };
 
 void saveMessage(QtMsgType type, const QMessageLogContext &context,
@@ -251,6 +264,19 @@ int main(int argc, char **argv) {
 
   QQuickView view;
   ReactNativeProperties *rnp = new ReactNativeProperties(&view);
+  QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+  QVariantMap initialProps;
+  QString statusNodePort = env.value("STATUS_NODE_PORT");
+  QString statusNodeDatadir = env.value("STATUS_NODE_DATADIR");
+  if (!statusNodePort.isEmpty()) {
+    initialProps["STATUS_NODE_PORT"] = statusNodePort;
+  }
+  if (!statusNodeDatadir.isEmpty()) {
+    initialProps["STATUS_NODE_DATADIR"] = statusNodeDatadir;
+  }
+
+  rnp->setInitialProps(initialProps);
+
 #ifdef BUILD_FOR_BUNDLE
   rnp->setCodeLocation("file:" + QGuiApplication::applicationDirPath() +
                        "/assets");
