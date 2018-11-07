@@ -13,10 +13,13 @@
 (assert (exists? core/app-root) "Fatal Error - Your core.cljs file doesn't define an 'app-root' function!!! - Perhaps there was a compilation failure?")
 
 (def cnt (r/atom 0))
-(defn reloader [] @cnt [core/app-root])
+(defn reloader [props] @cnt [core/app-root props])
 
 ;; Do not delete, root-el is used by the figwheel-bridge.js
-(def root-el (r/as-element [reloader]))
+#_(def root-el (r/as-element [reloader]))
+#_(defn root-el [props]
+  (r/as-element [reloader props]))
+(def root-el (r/reactify-component reloader))
 
 (figwheel/start {:websocket-url    (:desktop conf/figwheel-urls)
                  :heads-up-display false
