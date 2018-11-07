@@ -59,17 +59,17 @@
   (let [initial-props @(re-frame/subscribe [:initial-props])
         status-node-port (get initial-props "STATUS_NODE_PORT")
         status-node-datadir (get initial-props "STATUS_NODE_DATADIR")]
+    (log/debug "### get-base-node-config" initial-props)
     (cond-> (assoc config
                    :Name "StatusIM"
                    :BackupDisabledDataDir (utils.platform/no-backup-directory))
-      status-node-port
-      (assoc :ListenAddr (str ":" (get initial-props "STATUS_NODE_PORT")))
-      status-node-datadir
-      (assoc :DataDir (get initial-props "STATUS_NODE_DATADIR"))
       config/dev-build?
-      (assoc :ListenAddr (or (:ListenAddr config) ":30304")
-             :DataDir (or (:DataDir config)
-                          (str (:DataDir config) "_dev"))))))
+      (assoc :ListenAddr ":30304"
+             :DataDir (str (:DataDir config) "_dev"))
+      status-node-port
+      (assoc :ListenAddr (str ":" status-node-port))
+      status-node-datadir
+      (assoc :DataDir status-node-datadir))))
 
 (defn- pick-nodes
   "Picks `limit` different nodes randomly from the list of nodes
