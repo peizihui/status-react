@@ -1,6 +1,5 @@
 (ns status-im.desktop.core
   (:require [reagent.core :as reagent]
-            [taoensso.timbre :as log]
             [re-frame.core :as re-frame]
             status-im.utils.db
             status-im.ui.screens.db
