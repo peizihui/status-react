@@ -412,6 +412,13 @@ bool runNodeJsServer() {
   g_nodeJsServerProcess = new QProcess();
   g_nodeJsServerProcess->setWorkingDirectory(getDataStoragePath());
   g_nodeJsServerProcess->setProgram(QGuiApplication::applicationDirPath() + QDir::separator() + NODEJS_SERVER_NAME);
+  QString port = qgetenv("REACT_SERVER_PORT");
+  if (!port.isEmpty()) {
+      QStringList arguments = (QStringList() << "--port" << port);
+      g_ubuntuServerProcess->setArguments(arguments);
+  }
+  QObject::connect(g_ubuntuServerProcess, &QProcess::errorOccurred,
+
   QObject::connect(g_nodeJsServerProcess, &QProcess::errorOccurred,
                    [=](QProcess::ProcessError) {
                      qCWarning(JSSERVER) << "process name: "
