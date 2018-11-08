@@ -16,9 +16,6 @@
 (defn reloader [props] @cnt [core/app-root props])
 
 ;; Do not delete, root-el is used by the figwheel-bridge.js
-#_(def root-el (r/as-element [reloader]))
-#_(defn root-el [props]
-  (r/as-element [reloader props]))
 (def root-el (r/reactify-component reloader))
 
 (figwheel/start {:websocket-url    (:desktop conf/figwheel-urls)
