@@ -57,7 +57,6 @@
   (let [initial-props @(re-frame/subscribe [:initial-props])
         status-node-port (get initial-props :STATUS_NODE_PORT)
         status-node-datadir (get initial-props :STATUS_NODE_DATADIR)]
-    (log/debug "### get-base-node-config" initial-props)
     (cond-> (assoc config
                    :Name "StatusIM"
                    :BackupDisabledDataDir (utils.platform/no-backup-directory))

@@ -15,13 +15,9 @@
 (defn app-root [props]
   (reagent/create-class
    {:component-did-mount (fn [this]
-                           (let [initial-props (reagent/props this)]
-                             (log/debug "### component-did-mount props: " initial-props)
-                             (re-frame/dispatch [:set-initial-props initial-props])
-                             (deep-links/add-event-listener)))
+                           (re-frame/dispatch [:set-initial-props (reagent/props this)])
+                           (deep-links/add-event-listener))
     :reagent-render      (fn [props]
-                           (log/debug "### reagent-render props" (js->clj props))
-                           (log/debug "### reagent-render props1" (reagent/props (reagent/current-component)))
                            views/main)}))
 
 (defn init []
