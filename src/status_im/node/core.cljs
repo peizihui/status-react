@@ -5,8 +5,6 @@
             [status-im.native-module.core :as status]
             [status-im.utils.config :as config]
             [status-im.utils.types :as types]
-
-            [re-frame.core :as re-frame]
             [status-im.utils.platform :as utils.platform]
             [status-im.utils.utils :as utils]
             [taoensso.timbre :as log]
@@ -57,8 +55,8 @@
 
 (defn- get-base-node-config [config]
   (let [initial-props @(re-frame/subscribe [:initial-props])
-        status-node-port (get initial-props "STATUS_NODE_PORT")
-        status-node-datadir (get initial-props "STATUS_NODE_DATADIR")]
+        status-node-port (get initial-props :STATUS_NODE_PORT)
+        status-node-datadir (get initial-props :STATUS_NODE_DATADIR)]
     (log/debug "### get-base-node-config" initial-props)
     (cond-> (assoc config
                    :Name "StatusIM"
