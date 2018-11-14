@@ -107,16 +107,17 @@
    (let [members (clojure.set/union (get-in cofx [:db :chats chat-id :contacts])
                                     removed-members)
          {:keys [web3]} (:db cofx)
-         current-public-key (accounts.db/current-public-key cofx)]
+         current-public-key (accounts.db/current-public-key cofx)
+         success-event [:transport/message-sent
+                        chat-id
+                        (transport.utils/message-id (:message payload))
+                        :group-user-message]]
      (fx/merge
       cofx
       {:shh/send-group-message {:web3          web3
                                 :src           current-public-key
                                 :dsts          members
-                                :success-event [:transport/message-sent
-                                                chat-id
-                                                (transport.utils/message-id (:message payload))
-                                                :group-user-message]
+                                :success-event success-event
                                 :payload       payload}}))))
 
 (fx/defn handle-membership-update-received
