@@ -275,7 +275,7 @@ function bundleLinux() {
     # TODO this needs to be fixed: status-react/issues/5378
     if [ -z $STATUSIM_APPIMAGE ]; then
       STATUSIM_APPIMAGE=./StatusImAppImage.zip
-      [ -f $STATUSIM_APPIMAGE ] || wget https://desktop-app-files.ams3.digitaloceanspaces.com/StatusImAppImage.zip
+      [ -f $STATUSIM_APPIMAGE ] || wget https://desktop-app-files.ams3.digitaloceanspaces.com/StatusImAppImage_20181113.zip -O StatusImAppImage.zip
     fi
     unzip "$STATUSIM_APPIMAGE" -d .
     rm -rf AppDir
@@ -351,7 +351,7 @@ function bundleMacOS() {
   pushd $WORKFOLDER
     rm -rf Status.app
     # TODO this needs to be fixed: status-react/issues/5378
-    [ -f ./Status.app.zip ] || curl -L -o Status.app.zip https://desktop-app-files.ams3.digitaloceanspaces.com/Status.app.zip
+    [ -f ./Status.app.zip ] || curl -L -o Status.app.zip https://desktop-app-files.ams3.digitaloceanspaces.com/Status_20181113.app.zip
     echo -e "${GREEN}Downloading done.${NC}"
     echo ""
     unzip ./Status.app.zip

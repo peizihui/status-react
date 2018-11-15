@@ -268,11 +268,15 @@ int main(int argc, char **argv) {
   QVariantMap initialProps;
   QString statusNodePort = env.value("STATUS_NODE_PORT");
   QString statusNodeDatadir = env.value("STATUS_NODE_DATADIR");
+  QString statusDbDir = env.value("STATUS_DB_DIR");
   if (!statusNodePort.isEmpty()) {
     initialProps["STATUS_NODE_PORT"] = statusNodePort;
   }
   if (!statusNodeDatadir.isEmpty()) {
     initialProps["STATUS_NODE_DATADIR"] = statusNodeDatadir;
+  }
+  if (!statusDbDir.isEmpty()) {
+    initialProps["STATUS_DB_DIR"] = statusDbDir;
   }
 
   rnp->setInitialProps(initialProps);

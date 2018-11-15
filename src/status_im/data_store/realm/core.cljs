@@ -2,6 +2,7 @@
   (:require [goog.object :as object]
             [goog.string :as gstr]
             [clojure.string :as string]
+            [re-frame.core :as re-frame]
             [status-im.data-store.realm.schemas.account.core :as account]
             [status-im.data-store.realm.schemas.base.core :as base]
             [taoensso.timbre :as log]
@@ -54,35 +55,39 @@
 (def old-base-realm-path
   (.-defaultPath rn-dependencies/realm))
 
-(def realm-dir
+(defn realm-dir []
+  "This has to be a fn because otherwise re-frame app-db is not
+   initialized yet"
   (if-let [path (utils.platform/no-backup-directory)]
     (str path "/realm/")
-    (.-defaultPath rn-dependencies/realm)))
+    (let [initial-props @(re-frame/subscribe [:initial-props])
+          status-db-dir (get initial-props :STATUS_DB_DIR)]
+      (or status-db-dir (.-defaultPath rn-dependencies/realm)))))
 
 (def old-realm-dir
   (string/replace old-base-realm-path #"default\.realm$" ""))
 
-(def accounts-realm-dir
-  (str realm-dir "accounts/"))
+(defn accounts-realm-dir []
+  (str (realm-dir) "accounts/"))
 
-(def base-realm-path
-  (str realm-dir
+(defn base-realm-path []
+  (str (realm-dir)
        "default.realm"))
 
 (defn delete-realms []
   (log/warn "realm: deleting all realms")
-  (fs/unlink realm-dir))
+  (fs/unlink (realm-dir)))
 
 (defn ensure-directories []
   (..
-   (fs/mkdir realm-dir)
-   (then #(fs/mkdir accounts-realm-dir))))
+   (fs/mkdir (realm-dir))
+   (then #(fs/mkdir (accounts-realm-dir)))))
 
 (defn- move-realm-to-library [path]
   (let [filename (last (string/split path "/"))
         new-path (if (is-account-file? path)
-                   (str accounts-realm-dir (utils.ethereum/sha3 filename))
-                   (str realm-dir filename))]
+                   (str (accounts-realm-dir) (utils.ethereum/sha3 filename))
+                   (str (realm-dir) filename))]
     (log/debug "realm: moving " path " to " new-path)
     (if (realm-management-file? path)
       (fs/unlink path)
@@ -159,7 +164,7 @@
   (log/debug "Opening base realm... (first run)")
   (when @base-realm
     (close @base-realm))
-  (reset! base-realm (open-migrated-realm base-realm-path base/schemas encryption-key))
+  (reset! base-realm (open-migrated-realm (base-realm-path) base/schemas encryption-key))
   (log/debug "Created @base-realm"))
 
 (defn re-encrypt-realm
@@ -211,7 +216,7 @@
            (re-encrypt-realm file-name old-key new-key on-success on-error)))))))
 
 (defn change-account [address password encryption-key]
-  (let [path           (str accounts-realm-dir (utils.ethereum/sha3 address))
+  (let [path           (str (accounts-realm-dir) (utils.ethereum/sha3 address))
         account-db-key (db-encryption-key password encryption-key)]
     (close-account-realm)
     (..
