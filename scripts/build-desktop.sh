@@ -227,7 +227,7 @@ function bundleWindows() {
 
     if [ -z $STATUSIM_WINDOWS_BASEIMAGE_ZIP ]; then
       STATUSIM_WINDOWS_BASEIMAGE_ZIP=./StatusIm-Windows-base-image.zip
-      [ -f $STATUSIM_WINDOWS_BASEIMAGE_ZIP ] || wget https://desktop-app-files.ams3.digitaloceanspaces.com/StatusIm-Windows-base-image.zip
+      [ -f $STATUSIM_WINDOWS_BASEIMAGE_ZIP ] || wget https://desktop-app-files.ams3.digitaloceanspaces.com/StatusIm-Windows-base-image_20181113.zip -O StatusIm-Windows-base-image.zip
     fi
     unzip "$STATUSIM_WINDOWS_BASEIMAGE_ZIP" -d Windows/
 
