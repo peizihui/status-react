@@ -37,7 +37,7 @@ HELP_FUN = \
 # Main targets
 
 clean: ##@prepare Remove all output folders
-	git clean -qdxf -f android/ modules/react-native-status/ node_modules/ target/ desktop/ StatusImPackage/
+	git clean -qdxf -f android/ modules/react-native-status/ node_modules/ target/ desktop/ StatusImPackage/ StatusIm.xcarchive/
 
 setup: ##@prepare Install all the requirements for status-react
 	./scripts/setup
