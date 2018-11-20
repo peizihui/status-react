@@ -234,7 +234,9 @@ int main(int argc, char **argv) {
   QString appPath = QCoreApplication::applicationDirPath();
   QString dataStoragePath = getDataStoragePath();
 #ifdef BUILD_FOR_BUNDLE
-  killZombieJsServer();
+  if (qgetenv("STATUS_DATA_DIR").isEmpty()) {
+    killZombieJsServer();
+  }
 #else
   appPath.append(CRASH_REPORT_EXECUTABLE_RELATIVE_PATH);
   dataStoragePath = "";
@@ -421,10 +423,8 @@ bool runNodeJsServer() {
   QString port = qgetenv("REACT_SERVER_PORT");
   if (!port.isEmpty()) {
       QStringList arguments = (QStringList() << "--port" << port);
-      g_ubuntuServerProcess->setArguments(arguments);
+      g_nodeJsServerProcess->setArguments(arguments);
   }
-  QObject::connect(g_ubuntuServerProcess, &QProcess::errorOccurred,
-
   QObject::connect(g_nodeJsServerProcess, &QProcess::errorOccurred,
                    [=](QProcess::ProcessError) {
                      qCWarning(JSSERVER) << "process name: "
