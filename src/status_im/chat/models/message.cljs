@@ -189,6 +189,7 @@
                                                        current-chat? :seen
                                                        :else :received))
               (commands-receiving/receive message)
+              (log/debug "Will call display-notification" chat-id)
               (display-notification chat-id)
               (send-message-seen chat-id message-id (and (not group-chat)
                                                          current-chat?
@@ -324,13 +325,11 @@
               (send chat-id message-id send-record))))
 
 (fx/defn send-push-notification [cofx fcm-token status]
+  (log/debug "send-push-notification" fcm-token)
   (when (and fcm-token (= status :sent))
-    {:send-notification {:message (js/JSON.stringify #js {:from (accounts.db/current-public-key cofx)
-                                                          :to   (get-in cofx [:db :current-chat-id])})
-                         :payload {:title (i18n/label :notifications-new-message-title)
-                                   :body  (i18n/label :notifications-new-message-body)
-                                   :sound notifications/sound-name}
-                         :tokens  [fcm-token]}}))
+    {:send-notification {:data-payload  {:from (accounts.db/current-public-key cofx)
+                                         :to   (get-in cofx [:db :current-chat-id])}
+                         :tokens        [fcm-token]}}))
 
 (fx/defn update-message-status [{:keys [db]} chat-id message-id status]
   (let [from           (get-in db [:chats chat-id :messages message-id :from])
@@ -403,8 +402,8 @@
 
 (re-frame/reg-fx
  :send-notification
- (fn [{:keys [message payload tokens]}]
-   (let [payload-json (types/clj->json payload)
-         tokens-json  (types/clj->json tokens)]
-     (log/debug "send-notification message: " message " payload-json: " payload-json " tokens-json: " tokens-json)
-     (status/notify-users {:message message :payload payload-json :tokens tokens-json} #(log/debug "send-notification cb result: " %)))))
+ (fn [{:keys [data-payload tokens]}]
+   (let [data-payload-json  (types/clj->json data-payload)
+         tokens-json        (types/clj->json tokens)]
+     (log/debug "send-notification data-payload-json: " data-payload-json " tokens-json: " tokens-json)
+     (status/notify-users {:data-payload data-payload-json :tokens tokens-json} #(log/debug "send-notification cb result: " %)))))

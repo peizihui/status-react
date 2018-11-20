@@ -4,7 +4,6 @@
             [status-im.react-native.js-dependencies :as rn]
             [taoensso.timbre :as log]
             [status-im.accounts.db :as accounts.db]
-            [status-im.accounts.login.core :as accounts.login]
             [status-im.chat.models :as chat-model]
             [status-im.utils.platform :as platform]
             [status-im.utils.fx :as fx]))
@@ -44,16 +43,15 @@
                        (re-frame/dispatch [:notifications.callback/get-fcm-token-success x]))))
 
   ;; TODO(oskarth): Only called in background on iOS right now.
-  ;; NOTE(oskarth): Hardcoded data keys :sum and :msg in status-go right now.
   (defn on-notification []
-    (.onNotification (.notifications firebase)
-                     (fn [event-js]
-                       (let [event (js->clj event-js :keywordize-keys true)
-                             data (select-keys event [:sum :msg])
-                             aps (:aps event)]
-                         (log/debug "on-notification event: " (pr-str event))
-                         (log/debug "on-notification aps: " (pr-str aps))
-                         (log/debug "on-notification data: " (pr-str data))))))
+    (.onMessage (.messaging firebase)
+                (fn [event-js]
+                  (let [event (js->clj event-js :keywordize-keys true)
+                        data (select-keys event [:from :to])
+                        aps (:aps event)]
+                    (log/debug "on-notification event: " (pr-str event))
+                    (log/debug "on-notification aps: " (pr-str aps))
+                    (log/debug "on-notification data: " (pr-str data))))))
 
   (def channel-id "status-im")
   (def channel-name "Status")
@@ -64,7 +62,7 @@
   (defn create-notification-channel []
     (let [channel (firebase.notifications.Android.Channel. channel-id
                                                            channel-name
-                                                           firebase.notifications.Android.Importance.Max)]
+                                                           firebase.notifications.Android.Importance.High)]
       (.setSound channel sound-name)
       (.setShowBadge channel true)
       (.enableVibration channel true)
@@ -123,6 +121,7 @@
 
   (defn display-notification [{:keys [title body from to]}]
     (let [notification (firebase.notifications.Notification.)]
+      (log/debug "display-notification" title body)
       (.. notification
           (setTitle title)
           (setBody body)
