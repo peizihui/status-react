@@ -61,8 +61,8 @@
   (if-let [path (utils.platform/no-backup-directory)]
     (str path "/realm/")
     (let [initial-props @(re-frame/subscribe [:initial-props])
-          status-db-dir (get initial-props :STATUS_DB_DIR)]
-      (or status-db-dir (.-defaultPath rn-dependencies/realm)))))
+          status-data-dir (get initial-props :STATUS_DATA_DIR)]
+      (str (or status-data-dir (.-defaultPath rn-dependencies/realm)) "/"))))
 
 (def old-realm-dir
   (string/replace old-base-realm-path #"default\.realm$" ""))

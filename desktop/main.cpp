@@ -210,8 +210,14 @@ bool redirectLogIntoFile() {
 }
 
 QString getDataStoragePath() {
-  QString dataStoragePath =
-      QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation);
+  QString statusDataDir = qgetenv("STATUS_DATA_DIR");
+  QString dataStoragePath;
+  if (!statusDataDir.isEmpty()) {
+    dataStoragePath = statusDataDir;
+  }
+  else {
+    dataStoragePath = QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation);
+  }
   QDir dir(dataStoragePath);
   if (!dir.exists()) {
     dir.mkpath(".");
@@ -267,16 +273,12 @@ int main(int argc, char **argv) {
   QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
   QVariantMap initialProps;
   QString statusNodePort = env.value("STATUS_NODE_PORT");
-  QString statusNodeDatadir = env.value("STATUS_NODE_DATADIR");
-  QString statusDbDir = env.value("STATUS_DB_DIR");
+  QString statusDataDir = env.value("STATUS_DATA_DIR");
   if (!statusNodePort.isEmpty()) {
     initialProps["STATUS_NODE_PORT"] = statusNodePort;
   }
-  if (!statusNodeDatadir.isEmpty()) {
-    initialProps["STATUS_NODE_DATADIR"] = statusNodeDatadir;
-  }
-  if (!statusDbDir.isEmpty()) {
-    initialProps["STATUS_DB_DIR"] = statusDbDir;
+  if (!statusDataDir.isEmpty()) {
+    initialProps["STATUS_DATA_DIR"] = statusDataDir;
   }
 
   rnp->setInitialProps(initialProps);
