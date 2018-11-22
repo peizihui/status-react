@@ -416,27 +416,39 @@
 (fx/defn update-mailserver-topics
   "TODO: add support for cursors
   if there is a cursor, do not update `last-request`"
-  [{:keys [db now] :as cofx} {:keys [request-id]}]
-  (when-let [request (get db :mailserver/current-request)]
-    (let [{:keys [from to topics]} request
-          mailserver-topics (get-updated-mailserver-topics db topics to)]
-      (log/info "mailserver: message request " request-id
-                "completed for mailserver topics" topics "from" from "to" to)
-      (if (empty? mailserver-topics)
-        ;; when topics were deleted (filter was removed while request was pending)
-        (fx/merge cofx
-                  {:db (dissoc db :mailserver/current-request)}
-                  (process-next-messages-request))
-        (fx/merge cofx
-                  {:db (-> db
-                           (dissoc :mailserver/current-request)
-                           (update :mailserver/topics merge mailserver-topics))
-                   :data-store/tx (mapv (fn [[topic mailserver-topic]]
-                                          (data-store.mailservers/save-mailserver-topic-tx
-                                           {:topic topic
-                                            :mailserver-topic mailserver-topic}))
-                                        mailserver-topics)}
-                  (process-next-messages-request))))))
+  [{:keys [db now] :as cofx} {:keys [request-id error]}]
+  (if error
+    (log/error "mailserver:" error)
+    (when-let [request (get db :mailserver/current-request)]
+      (let [{:keys [from to topics]} request
+            mailserver-topics (get-updated-mailserver-topics db topics to)]
+        (log/info "mailserver: message request " request-id
+                  "completed for mailserver topics" topics "from" from "to" to)
+        (if (empty? mailserver-topics)
+          ;; when topics were deleted (filter was removed while request was pending)
+          (fx/merge cofx
+                    {:db (dissoc db :mailserver/current-request)}
+                    (process-next-messages-request))
+          (fx/merge cofx
+                    {:db (-> db
+                             (dissoc :mailserver/current-request)
+                             (update :mailserver/topics merge mailserver-topics))
+                     :data-store/tx (mapv (fn [[topic mailserver-topic]]
+                                            (data-store.mailservers/save-mailserver-topic-tx
+                                             {:topic topic
+                                              :mailserver-topic mailserver-topic}))
+                                          mailserver-topics)}
+                    (process-next-messages-request)))))))
+
+(fx/defn handle-request-completed
+  [cofx event]
+  (when (accounts.db/logged-in? cofx)
+    (let [error (:errorMessage event)]
+      (mailserver/update-mailserver-topics
+       cofx
+       (cond-> {:request-id (:requestID event)
+                :cursor     (:cursor event)}
+         (not-empty error) (assoc :error error))))))
 
 (fx/defn upsert-mailserver-topic
   "if the topic didn't exist
