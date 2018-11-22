@@ -271,7 +271,7 @@ function bundleLinux() {
   echo "Creating AppImage..."
 
   pushd $WORKFOLDER
-    rm -rf StatusImAppImage
+    rm -rf StatusImAppImage*
     # TODO this needs to be fixed: status-react/issues/5378
     if [ -z $STATUSIM_APPIMAGE ]; then
       STATUSIM_APPIMAGE=./StatusImAppImage.zip
