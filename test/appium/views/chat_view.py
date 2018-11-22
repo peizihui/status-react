@@ -5,6 +5,7 @@ from selenium.common.exceptions import TimeoutException, NoSuchElementException
 from tests import common_password
 from views.base_element import BaseButton, BaseEditBox, BaseText, BaseElement
 from views.base_view import BaseView, ProgressBar
+from views.home_view import ChatNameText
 from views.profile_view import ProfilePictureElement, ProfileAddressText
 
 
@@ -266,6 +267,7 @@ class ChatView(BaseView):
     def __init__(self, driver):
         super(ChatView, self).__init__(driver)
 
+        self.chat_name = ChatNameText(self.driver)
         self.chat_message_input = ChatMessageInput(self.driver)
         self.add_to_contacts = AddToContacts(self.driver)
         self.user_name_text = UserNameText(self.driver)
