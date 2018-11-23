@@ -22,4 +22,4 @@
   (re-frame/dispatch [:init/app-started])
   (.registerComponent react/app-registry "StatusIm" #(reagent/reactify-component app-root))
   (when platform/android?
-    (.registerHeadlessTask react/app-registry "RNFirebaseBackgroundMessage" #(reagent/reactify-component background-messaging/handle-message))))
+    (.registerHeadlessTask react/app-registry "RNFirebaseBackgroundMessage" background-messaging/handle-message)))

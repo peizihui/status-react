@@ -152,7 +152,9 @@
 
 (fx/defn display-notification
   [cofx chat-id]
+  (log/debug "#6772 - In display-notification")
   (when config/in-app-notifications-enabled?
+    (log/debug "#6772 - In display-notification: config/in-app-notifications-enabled? is true")
     (let [view-id (get-in cofx [:db :view-id])
           from (accounts.db/current-public-key cofx)
           current-chat-id (get-in cofx [:db :current-chat-id])]
@@ -189,7 +191,7 @@
                                                        current-chat? :seen
                                                        :else :received))
               (commands-receiving/receive message)
-              (log/debug "Will call display-notification" chat-id)
+              (log/debug "#6772 - Will call display-notification" chat-id)
               (display-notification chat-id)
               (send-message-seen chat-id message-id (and (not group-chat)
                                                          current-chat?
@@ -325,7 +327,7 @@
               (send chat-id message-id send-record))))
 
 (fx/defn send-push-notification [cofx fcm-token status]
-  (log/debug "send-push-notification" fcm-token)
+  (log/debug "#6772 - send-push-notification" fcm-token)
   (when (and fcm-token (= status :sent))
     {:send-notification {:data-payload  {:from (accounts.db/current-public-key cofx)
                                          :to   (get-in cofx [:db :current-chat-id])}

@@ -2,6 +2,7 @@
   (:require [goog.object :as object]
             [re-frame.core :as re-frame]
             [status-im.react-native.js-dependencies :as rn]
+            [cljs.core.async :as async]
             [taoensso.timbre :as log]
             [status-im.utils.platform :as platform]))
 
@@ -11,7 +12,16 @@
 ;firebase.messaging.RemoteMessage ; https://github.com/invertase/react-native-firebase-docs/blob/master/docs/messaging/reference/RemoteMessage.md
 (defn handle-message [message]
   ; handle your message
-  (log/debug "handling background message" message))
+  (js/Promise.
+   (fn [on-success on-error]
+     (try
+       (do
+         (log/debug "#6772 -handling background message" message)
+         (on-success))
+       (catch :default e
+         (do
+           (log/warn "#6772 -failed to handle background message" e)
+           (on-error {:error (str e)})))))))
 ;         // @flow
 ; import firebase from 'react-native-firebase';
 ; // Optional flow type

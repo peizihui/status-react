@@ -88,12 +88,11 @@
       (catch :default _
         #js {})))
 
-  (defn handle-notification-event [event]
-    (let [msg (object/get (.. event -notification -data) "msg")
-          data (parse-notification-payload msg)
+  (defn handle-notification-event [event] ;; https://github.com/invertase/react-native-firebase/blob/adcbeac3d11585dd63922ef178ff6fd886d5aa9b/src/modules/notifications/Notification.js#L13
+    (let [data (.. event -notification -data) ;; https://github.com/invertase/react-native-firebase/blob/adcbeac3d11585dd63922ef178ff6fd886d5aa9b/src/modules/notifications/Notification.js#L79
           from (object/get data "from")
           to (object/get data "to")]
-      (log/debug "on notification" (pr-str msg))
+      (log/debug "#6772 - handle-notification-event" from to)
       (when (and from to)
         (re-frame/dispatch [:notifications/notification-event-received {:from from
                                                                         :to   to}]))))
@@ -120,17 +119,18 @@
       (create-notification-channel)))
 
   (defn display-notification [{:keys [title body from to]}]
-    (let [notification (firebase.notifications.Notification.)]
-      (log/debug "display-notification" title body)
+    (log/debug "#6772 - display-notification" title body from to)
+    (let [notification (firebase.notifications.Notification.)
+          data         {:from from
+                        :to   to}]
       (.. notification
           (setTitle title)
           (setBody body)
-          (setData (js/JSON.stringify #js {:from from
-                                           :to   to}))
+          (setData (clj->js data))
           (setSound sound-name)
           (-android.setChannelId channel-id)
           (-android.setAutoCancel true)
-          (-android.setPriority firebase.notifications.Android.Priority.Max)
+          (-android.setPriority firebase.notifications.Android.Priority.High)
           (-android.setGroup group-id)
           (-android.setGroupSummary true)
           (-android.setSmallIcon icon))

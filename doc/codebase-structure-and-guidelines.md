@@ -61,13 +61,14 @@ These guidelines make db.cljs namespaces the place to go when making changes to 
 - events must always be declared with `register-handler-fx`, no `register-handler-db`
 - events must never use the `trim-v` interceptor
 - events must only contain a function call defined in a module
-```clojure
-(handlers/register-handler-fx
- :notifications/handle-push-notification
- (fn [cofx [_ event]]
-   (notifications/handle-push-notification event cofx)))
-```
+    ```clojure
+    (handlers/register-handler-fx
+    :notifications/handle-push-notification
+    (fn [cofx [_ event]]
+    (notifications/handle-push-notification event cofx)))
+    ```
 - events must use synthetic namespaces:
+
     - `:module.ui/` for user triggered events
     - `:module.callback/` for callback events, which are events bringing back the result of an fx to the event loop, the name of the event should end with `-success` or `-error` most of the time. Other possibilities can be `-granted`, `-denied` for instance.
     - `:module/` for internal events, examples are time based events marked `-timed-out`, external changes marked `-changed` or reception of external events marked `-received`. 
