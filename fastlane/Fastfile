@@ -27,9 +27,9 @@ end
 # uploads `file` to sauce labs (overwrites if there is anoter file from the
 # same commit)
 def upload_to_saucelabs(file)
-    username = ENV["SAUCE_USERNAME"]
     key = ENV["SAUCE_ACCESS_KEY"]
-    unique_name = ENV["SAUCE_LABS_APK"]
+    username = ENV["SAUCE_USERNAME"]
+    unique_name = ENV["SAUCE_LABS_NAME"]
 
     url = "https://saucelabs.com/rest/v1/storage/" + username + '/' + unique_name + "?overwrite=true"
 
@@ -200,7 +200,7 @@ platform :ios do
   desc "expects to have an .apk prepared: `android/app/build/outputs/apk/release/app-release.apk`"
   desc "expects to have a saucelabs access key as SAUCE_ACCESS_KEY env variable"
   desc "expects to have a saucelabs username token as SAUCE_USERNAME env variable"
-  desc "expects to have a saucelabs destination name as SAUCE_LABS_APK env variable"
+  desc "expects to have a saucelabs destination name as SAUCE_LABS_NAME env variable"
   desc "will fails if file isn't there"
   lane :saucelabs do
     upload_to_saucelabs(
@@ -276,7 +276,7 @@ platform :android do
   desc "expects to have an .apk prepared: `android/app/build/outputs/apk/release/app-release.apk`"
   desc "expects to have a saucelabs access key as SAUCE_ACCESS_KEY env variable"
   desc "expects to have a saucelabs username token as SAUCE_USERNAME env variable"
-  desc "expects to have a saucelabs destination name as SAUCE_LABS_APK env variable"
+  desc "expects to have a saucelabs destination name as SAUCE_LABS_NAME env variable"
   desc "will fails if file isn't there"
   lane :saucelabs do
     upload_to_saucelabs(

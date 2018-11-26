@@ -16,7 +16,7 @@ def compile(type = 'nightly') {
   plutil('CFBundleShortVersionString', common.version())
   plutil('CFBundleVersion', common.buildNumber())
   plutil('CFBundleBuildUrl', currentBuild.absoluteUrl)
-  sh 'rm -fr status-e2e'
+  /* the dir might not exist */
   sh 'mkdir -p status-e2e'
   /* build the actual app */
   withCredentials([
@@ -28,18 +28,16 @@ def compile(type = 'nightly') {
   ]) {
     sh "bundle exec fastlane ios ${target}"
   }
-  sh 'find . -iname "*app"'
-  sh 'find . -iname "*status-e2e*"'
-  sh 'date'
-  sh 'ls -l status-e2e'
-  if (type != 'testflight') {
-      def pkg = cmn.pkgFilename(type, 'ipa')
-      sh "cp status-adhoc/StatusIm.ipa ${pkg}"
-      return pkg
-  } else if (type == 'e2e') {
-      return cmn.pkgFilename('StatusIm', 'ipa.zip')
+  /* rename built file for uploads and archivization */
+  def pkg = ''
+  if (type == 'e2e') {
+    pkg = cmn.pkgFilename('e2e', 'app.zip')
+    sh "cp status-e2e/StatusIm.app.zip ${pkg}"
+  } else if (type != 'testflight') {
+    pkg = cmn.pkgFilename(type, 'ipa')
+    sh "cp status-adhoc/StatusIm.ipa ${pkg}"
   }
-  return ''
+  return pkg
 }
 
 def uploadToDiawi() {
@@ -55,9 +53,9 @@ def uploadToDiawi() {
 def uploadToSauceLabs() {
   def changeId = cmn.getParentRunEnv('CHANGE_ID')
   if (changeId != null) {
-    env.SAUCE_LABS_APK = "${changeId}.apk"
+    env.SAUCE_LABS_NAME = "${changeId}.app.zip"
   } else {
-    env.SAUCE_LABS_APK = "im.status.ethereum-e2e-${cmn.gitCommit()}.app"
+    env.SAUCE_LABS_NAME = "im.status.ethereum-e2e-${cmn.gitCommit()}.app.zip"
   }
   withCredentials([
     string(credentialsId: 'SAUCE_ACCESS_KEY', variable: 'SAUCE_ACCESS_KEY'),
@@ -65,7 +63,7 @@ def uploadToSauceLabs() {
   ]) {
     sh 'bundle exec fastlane ios saucelabs'
   }
-  return env.SAUCE_LABS_APK
+  return env.SAUCE_LABS_NAME
 }
 
 return this

@@ -162,7 +162,12 @@ def githubNotify(Map urls) {
 }
 
 def pkgFind(glob) {
-  return findFiles(glob: "pkg/*${glob}")[0].path
+  def fullGlob =  "pkg/*${glob}"
+  def found = findFiles(glob: fullGlob)
+  if (found.size() == 0) {
+    throw "File not found via glob: ${gullGlob}"
+  }
+  return found[0].path
 }
 
 def setBuildDesc(Map links) {
