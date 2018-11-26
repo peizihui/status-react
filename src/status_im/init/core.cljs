@@ -183,7 +183,8 @@
   (let [{:universal-links/keys [url]
          :keys [accounts/accounts accounts/create contacts/contacts networks/networks
                 network network-status peers-count peers-summary view-id navigation-stack
-                pairing/installations status-module-initialized? device-UUID semaphores]
+                pairing/installations status-module-initialized? device-UUID semaphores
+                accounts/login]
          :node/keys [status]
          :or   {network (get app-db :network)}} db
         current-account (get accounts address)
@@ -197,6 +198,8 @@
                         :accounts/create create
                         :networks/networks networks
                         :account/account current-account
+                        :accounts/login login
+                        :accounts/accounts accounts
                         :network-status network-status
                         :network network
                         :chain (ethereum/network->chain-name account-network)
@@ -226,7 +229,7 @@
   (= (get-in cofx [:db :view-id])
      :create-account))
 
-(fx/defn initialize-account [{:keys [db web3] :as cofx} address]
+(fx/defn initialize-account [cofx address]
   (log/debug "initialize-account")
   (fx/merge cofx
             {:notifications/get-fcm-token nil}

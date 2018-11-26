@@ -103,10 +103,7 @@
  :init-chats
  [(re-frame/inject-cofx :web3/get-web3)
   (re-frame/inject-cofx :get-default-dapps)
-  (re-frame/inject-cofx :data-store/all-chats)
-  (re-frame/inject-cofx :data-store/get-all-mailservers)
-  (re-frame/inject-cofx :data-store/transport)
-  (re-frame/inject-cofx :data-store/mailserver-topics)]
+  (re-frame/inject-cofx :data-store/all-chats)]
  (fn [{:keys [db] :as cofx} [_ address]]
    (fx/merge cofx
              {:db (assoc db :chats/loading? false)}
@@ -264,6 +261,11 @@
 
 (handlers/register-handler-fx
  :accounts.login.callback/login-success
+ [(re-frame/inject-cofx :web3/get-web3)
+  (re-frame/inject-cofx :data-store/all-chats)
+  (re-frame/inject-cofx :data-store/get-all-mailservers)
+  (re-frame/inject-cofx :data-store/transport)
+  (re-frame/inject-cofx :data-store/mailserver-topics)]
  (fn [cofx [_ login-result]]
    (accounts.login/user-login-callback cofx login-result)))
 
