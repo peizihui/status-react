@@ -45,7 +45,8 @@
             [taoensso.timbre :as log]
             [status-im.utils.datetime :as time]
             [status-im.chat.commands.core :as commands]
-            [status-im.chat.models.loading :as chat-loading]))
+            [status-im.chat.models.loading :as chat-loading]
+            [status-im.node.core :as node]))
 
 ;; init module
 
@@ -110,7 +111,6 @@
    (fx/merge cofx
              {:db (assoc db :chats/loading? false)}
              (chat-loading/initialize-chats)
-             (protocol/initialize-protocol address)
              (chat-loading/initialize-pending-messages))))
 
 (handlers/register-handler-fx
@@ -120,8 +120,11 @@
   (re-frame/inject-cofx :data-store/get-all-installations)
   (re-frame/inject-cofx :data-store/all-browsers)
   (re-frame/inject-cofx :data-store/all-dapp-permissions)]
- (fn [cofx [_ address]]
-   (init/initialize-account cofx address)))
+ (fn [{:keys [db] :as cofx} [_ address]]
+   (fx/merge
+    cofx
+    (node/initialize (get-in db [:accounts/login :address]))
+    (init/initialize-account address))))
 
 (handlers/register-handler-fx
  :init.callback/account-change-error

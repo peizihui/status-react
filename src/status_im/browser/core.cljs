@@ -24,6 +24,7 @@
 
 (fx/defn initialize-browsers
   [{:keys [db all-stored-browsers]}]
+  (log/debug "initialize-browsers")
   (let [browsers (into {} (map #(vector (:browser-id %) %) all-stored-browsers))]
     {:db (assoc db :browser/browsers browsers)}))
 

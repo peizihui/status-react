@@ -9,7 +9,11 @@
             [status-im.utils.keychain.core :as keychain]
             [status-im.utils.types :as types]
             [taoensso.timbre :as log]
-            [status-im.utils.security :as security]))
+            [status-im.utils.security :as security]
+            [status-im.utils.platform :as platform]
+            [status-im.protocol.core :as protocol]
+            [status-im.models.wallet :as models.wallet]
+            [status-im.models.transactions :as transactions]))
 
 ;; login flow:
 ;;
@@ -40,22 +44,59 @@
   (let [{:keys [address password save-password?]} (accounts.db/credentials cofx)]
     {:accounts.login/login [address password save-password?]}))
 
-(fx/defn user-login [{:keys [db] :as cofx}]
+#_((fx/defn user-login [{:keys [db] :as cofx}]
+     (fx/merge cofx
+               {:db (assoc-in db [:accounts/login :processing] true)}
+               (node/initialize (get-in db [:accounts/login :address]))))
+
+   (fx/defn user-login-callback
+     [{db :db :as cofx} login-result]
+     (let [data    (types/json->clj login-result)
+           error   (:error data)
+           success (empty? error)]
+       (if success
+         (let [{:keys [address password save-password?]} (accounts.db/credentials cofx)]
+           (merge {:accounts.login/clear-web-data nil
+                   :data-store/change-account     [address password]}
+                  (when save-password?
+                    {:keychain/save-user-password [address password]})))
+         {:db (update db :accounts/login assoc
+                      :error error
+                      :processing false)}))))
+
+(defn initialize-wallet [cofx]
   (fx/merge cofx
-            {:db (assoc-in db [:accounts/login :processing] true)}
-            (node/initialize (get-in db [:accounts/login :address]))))
+            (models.wallet/initialize-tokens)
+            (models.wallet/update-wallet)
+            (transactions/start-sync)))
+
+(fx/defn user-login [{:keys [db] :as cofx}]
+  (let [{:keys [address password save-password?]} (accounts.db/credentials cofx)]
+    (fx/merge
+     cofx
+     (merge
+      {:db                            (assoc-in db [:accounts/login :processing] true)
+       :accounts.login/clear-web-data nil
+       :data-store/change-account     [address password]}
+      (when save-password?
+        {:keychain/save-user-password [address password]})))))
 
 (fx/defn user-login-callback
-  [{db :db :as cofx} login-result]
+  [{:keys [db web3] :as cofx} login-result]
   (let [data    (types/json->clj login-result)
         error   (:error data)
-        success (empty? error)]
+        success (empty? error)
+        address (get-in db [:account/account :address])]
     (if success
-      (let [{:keys [address password save-password?]} (accounts.db/credentials cofx)]
-        (merge {:accounts.login/clear-web-data nil
-                :data-store/change-account [address password]}
-               (when save-password?
-                 {:keychain/save-user-password [address password]})))
+      (fx/merge
+       cofx
+       {:web3/set-default-account [web3 address]
+        :web3/fetch-node-version  [web3
+                                   #(re-frame/dispatch
+                                     [:web3/fetch-node-version-callback %])]}
+       (protocol/initialize-protocol address)
+       #(when-not platform/desktop?
+          (initialize-wallet %)))
       {:db (update db :accounts/login assoc
                    :error error
                    :processing false)})))

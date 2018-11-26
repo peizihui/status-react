@@ -10,7 +10,8 @@
             [status-im.native-module.core :as native-module]
             [status-im.utils.identicon :as identicon]
             [status-im.data-store.contacts :as data-store.contacts]
-            [status-im.transport.message.pairing :as transport.pairing]))
+            [status-im.transport.message.pairing :as transport.pairing]
+            [taoensso.timbre :as log]))
 
 (def contact-batch-n 4)
 
@@ -186,6 +187,7 @@
         (upsert-installation cofx installation)))))
 
 (fx/defn load-installations [{:keys [db all-installations]}]
+  (log/debug "load-installations")
   {:db (assoc db :pairing/installations (reduce
                                          (fn [acc {:keys [installation-id] :as i}]
                                            (assoc acc installation-id i))

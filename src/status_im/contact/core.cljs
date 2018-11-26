@@ -10,10 +10,12 @@
             [status-im.ui.screens.add-new.new-chat.db :as new-chat.db]
             [status-im.ui.screens.navigation :as navigation]
             [status-im.utils.fx :as fx]
-            [status-im.utils.utils :as utils]))
+            [status-im.utils.utils :as utils]
+            [taoensso.timbre :as log]))
 
 (fx/defn load-contacts
   [{:keys [db all-contacts]}]
+  (log/debug "load-contacts")
   (let [contacts-list (map #(vector (:public-key %) %) all-contacts)
         contacts (into {} contacts-list)]
     {:db (update db :contacts/contacts #(merge contacts %))}))

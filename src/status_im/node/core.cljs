@@ -138,6 +138,7 @@
 
 (fx/defn start
   [{:keys [db]} address]
+  (log/debug "node start")
   (let [network     (if address
                       (get-account-network db address)
                       (:network db))
@@ -176,6 +177,7 @@
 (re-frame/reg-fx
  :node/stop
  (fn []
+   (log/debug "stop-node")
    (status/stop-node)))
 
 (re-frame/reg-fx

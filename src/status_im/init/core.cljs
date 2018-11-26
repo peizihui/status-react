@@ -179,6 +179,7 @@
             (initialize-views)))
 
 (fx/defn initialize-account-db [{:keys [db web3]} address]
+  (log/debug "initialize-account-db")
   (let [{:universal-links/keys [url]
          :keys [accounts/accounts accounts/create contacts/contacts networks/networks
                 network network-status peers-count peers-summary view-id navigation-stack
@@ -208,12 +209,6 @@
            (= view-id :create-account)
            (assoc-in [:accounts/create :step] :enter-name))}))
 
-(defn initialize-wallet [cofx]
-  (fx/merge cofx
-            (models.wallet/initialize-tokens)
-            (models.wallet/update-wallet)
-            (transactions/start-sync)))
-
 (defn login-only-events [cofx address]
   (fx/merge cofx
             {:notifications/request-notifications-permissions nil}
@@ -232,22 +227,18 @@
      :create-account))
 
 (fx/defn initialize-account [{:keys [db web3] :as cofx} address]
+  (log/debug "initialize-account")
   (fx/merge cofx
-            {:web3/set-default-account    [web3 address]
-             :web3/fetch-node-version     [web3
-                                           #(re-frame/dispatch
-                                             [:web3/fetch-node-version-callback %])]
-             :notifications/get-fcm-token nil}
+            {:notifications/get-fcm-token nil}
             (initialize-account-db address)
             (contact/load-contacts)
             (pairing/load-installations)
             #(when (dev-mode? %)
                (models.dev-server/start))
             (browser/initialize-browsers)
+
             (browser/initialize-dapp-permissions)
             (extensions.registry/initialize)
-            #(when-not platform/desktop?
-               (initialize-wallet %))
             (accounts.update/update-sign-in-time)
             #(when-not (creating-account? %)
                (login-only-events % address))))
